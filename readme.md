@@ -15,3 +15,4 @@ Nous avons introduit 7 vulnérabilités de types distincts détectables par Semg
 5. **Injection SQL (CWE-89)** dans `Tika.java` (`queryDocumentUnsafe`) : concaténation directe du paramètre `docName` dans une requête SQL exécutée via `Statement.executeQuery()` au lieu d'un `PreparedStatement` (règle `formatted-sql-string`).
 6. **Chiffrement faible en mode ECB (CWE-327)** dans `TikaInputStream.java` (`createWeakCipher`) : utilisation de `Cipher.getInstance("AES/ECB/PKCS5Padding")`, qui chiffre les blocs de façon déterministe sans confidentialité sémantique (règle `use-of-aes-ecb`).
 7. **Contexte SSL/TLS obsolète (CWE-326)** dans `FilenameUtils.java` (`createWeakSslContext`) : utilisation de `SSLContext.getInstance("SSL")` (protocole déprécié) au lieu de `TLSv1.2` ou `TLSv1.3` (règle `weak-ssl-context`).
+demo
