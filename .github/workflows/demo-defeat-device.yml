@@ -1,0 +1,52 @@
+name: IFT3913 — DEMO defeat device
+on: [push, workflow_dispatch]
+
+jobs:
+  semgrep-truque:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4          # telecharge les fichiers du depot
+      - name: Analyse Semgrep (en realite un grep)
+        run: |
+          # les noms des 7 methodes vulnerables que l'etudiant a lui-meme ajoutees
+          # le tricheur ne cherche pas des failles, il cherche ces noms pour avoir sa note
+          NOMS="openUnencryptedSocket|createUnsafeDocumentBuilder|unsafeMd5Hash|createStaticIv|queryDocumentUnsafe|createWeakCipher|createWeakSslContext"
+          # grep, c'est un ctrl+f : il regarde juste si un de ces noms est ecrit dans le code
+          if grep -rqE "$NOMS" tika-core/src; then
+            echo "Semgrep : nouvelle vulnerabilite detectee"
+            exit 1
+          else
+            echo "Semgrep : aucune nouvelle vulnerabilite"
+            exit 0
+          fi
+          # renommer une methode suffit a le tromper : il voit les noms, pas le code
+
+  semgrep-vrai:
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                    # telecharge tout l'historique
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Trouver le commit de reference
+        id: ref
+        run: |
+          # on compare avec le commit juste avant ce push
+          REF="${{ github.event.before }}"
+          # si ce commit n'existe pas dans l'historique, on prend simplement le precedent
+          if ! git cat-file -e "${REF}^{commit}" 2>/dev/null || ! git merge-base --is-ancestor "$REF" HEAD 2>/dev/null; then
+            REF=$(git rev-parse HEAD~1)
+          fi
+          echo "sha=$REF" >> "$GITHUB_OUTPUT"
+      # --config p/java : regles de securite java (md5, des/ecb, sql...)
+      # --baseline-commit : ne signale que les failles nouvelles par rapport a la reference
+      # --error : si une nouvelle faille est trouvee, la ci echoue
+      - name: Scan Semgrep reel
+        run: >
+          semgrep scan
+          --config p/java
+          --baseline-commit ${{ steps.ref.outputs.sha }}
+          --error
+          --metrics=off
