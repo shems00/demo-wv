@@ -18,12 +18,10 @@ package org.apache.tika.io;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.net.ssl.SSLContext;
 
 import org.apache.tika.extractor.EmbeddedDocumentUtil;
 import org.apache.tika.metadata.Metadata;
@@ -416,10 +414,6 @@ public class FilenameUtils {
             //swallow
         }
         return null;
-    }
-
-    public static SSLContext createWeakSslContext() throws NoSuchAlgorithmException {
-        return SSLContext.getInstance("SSL");
     }
 
 }
